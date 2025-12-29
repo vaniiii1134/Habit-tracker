@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Monthly Habit Tracker</title>
+<title>Habit Tracker Calendar 2026</title>
 <style>
   body {
     font-family: Arial, sans-serif;
@@ -11,43 +11,44 @@
     padding: 20px;
     background: #f5f5f5;
   }
-  h1, h2 {
+  h1 {
     text-align: center;
   }
   .controls {
     display: flex;
     justify-content: center;
+    flex-wrap: wrap;
     gap: 10px;
     margin-bottom: 20px;
-    flex-wrap: wrap;
   }
-  input[type=text] {
+  input[type=text], select, button {
     padding: 8px;
     font-size: 16px;
-  }
-  button {
-    padding: 8px 12px;
-    font-size: 16px;
-    cursor: pointer;
   }
   table {
     width: 100%;
     border-collapse: collapse;
-    overflow-x: auto;
-    display: block;
+    table-layout: fixed;
   }
   th, td {
     border: 1px solid #ddd;
     text-align: center;
-    padding: 5px;
-    min-width: 30px;
-  }
-  th {
-    background-color: #f0f0f0;
+    padding: 4px;
+    word-wrap: break-word;
   }
   td.habit-name {
     text-align: left;
     min-width: 120px;
+  }
+  td.today {
+    background-color: #d0f0d0;
+  }
+  td.checked {
+    background-color: #a0d6a0;
+  }
+  input[type=checkbox] {
+    transform: scale(0.8);
+    cursor: pointer;
   }
   @media (max-width: 600px) {
     td.habit-name {
@@ -61,7 +62,7 @@
 </head>
 <body>
 
-<h1>Monthly Habit Tracker</h1>
+<h1>Habit Tracker Calendar 2026</h1>
 
 <div class="controls">
   <input type="text" id="newHabit" placeholder="New Habit">
@@ -77,8 +78,11 @@
 <script>
 const monthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 let habits = JSON.parse(localStorage.getItem('calendarHabits')) || [];
-let currentMonth = new Date().getMonth();
-let currentYear = new Date().getFullYear();
+
+// Default to January 2026
+let currentMonth = 0; // January
+let currentYear = 2026; 
+let todayStr = "2026-01-01"; // For highlighting "today" in 2026
 
 function saveHabits() {
   localStorage.setItem('calendarHabits', JSON.stringify(habits));
@@ -88,7 +92,7 @@ function addHabit() {
   const input = document.getElementById('newHabit');
   const name = input.value.trim();
   if(!name) return;
-  habits.push({ name: name, records: {} }); // records = {"2025-12-30": true}
+  habits.push({ name: name, records: {} });
   input.value = '';
   saveHabits();
   renderCalendar();
@@ -96,7 +100,15 @@ function addHabit() {
 
 function toggleCheckbox(habitIndex, dateStr) {
   const record = habits[habitIndex].records;
-  record[dateStr] = !record[dateStr];
+
+  // Prevent multiple check-ins for the same day
+  if(record[dateStr]) {
+    alert("You already marked this habit done today!");
+    return;
+  }
+
+  // Mark the habit done
+  record[dateStr] = true;
   saveHabits();
   renderCalendar();
 }
@@ -104,68 +116,66 @@ function toggleCheckbox(habitIndex, dateStr) {
 function renderCalendar() {
   const monthSelect = document.getElementById('monthSelect');
   const yearSelect = document.getElementById('yearSelect');
-  
-  // Populate months
-  if(monthSelect.options.length === 0) {
-    monthNames.forEach((m, i) => {
-      const option = document.createElement('option');
-      option.value = i;
-      option.text = m;
-      monthSelect.add(option);
-    });
+
+  // Populate month dropdown
+  if(monthSelect.options.length === 0){
+    monthNames.forEach((m,i)=>{ const option=document.createElement('option'); option.value=i; option.text=m; monthSelect.add(option); });
   }
   monthSelect.value = currentMonth;
-  
-  // Populate years
-  if(yearSelect.options.length === 0) {
-    for(let y = currentYear - 5; y <= currentYear + 5; y++){
-      const option = document.createElement('option');
-      option.value = y;
-      option.text = y;
-      yearSelect.add(option);
+
+  // Populate year dropdown
+  if(yearSelect.options.length === 0){
+    for(let y=2020;y<=2030;y++){
+      const option=document.createElement('option'); option.value=y; option.text=y; yearSelect.add(option);
     }
   }
   yearSelect.value = currentYear;
-  
+
   const month = parseInt(monthSelect.value);
   const year = parseInt(yearSelect.value);
+  const firstDay = new Date(year, month, 1).getDay();
   const daysInMonth = new Date(year, month+1, 0).getDate();
-  
+
   const table = document.getElementById('habitTable');
   table.innerHTML = '';
-  
-  // Header row
+
+  // Header row (weekdays)
   const header = document.createElement('tr');
-  const thHabit = document.createElement('th');
-  thHabit.textContent = "Habit / Day";
-  thHabit.className = "habit-name";
-  header.appendChild(thHabit);
-  for(let d=1; d<=daysInMonth; d++){
-    const th = document.createElement('th');
-    th.textContent = d;
-    header.appendChild(th);
+  const thHabit = document.createElement('th'); thHabit.textContent="Habit / Day"; thHabit.className="habit-name"; header.appendChild(thHabit);
+  const weekDays = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+  for(let i=0;i<weekDays.length;i++){
+    const th = document.createElement('th'); th.textContent = weekDays[i]; header.appendChild(th);
   }
   table.appendChild(header);
-  
+
   // Habit rows
-  habits.forEach((habit, hIndex) => {
+  habits.forEach((habit,hIndex)=>{
     const tr = document.createElement('tr');
-    const tdName = document.createElement('td');
-    tdName.textContent = habit.name;
-    tdName.className = "habit-name";
-    tr.appendChild(tdName);
-    
-    for(let d=1; d<=daysInMonth; d++){
-      const td = document.createElement('td');
-      const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-      const checkbox = document.createElement('input');
-      checkbox.type = "checkbox";
-      checkbox.checked = habit.records[dateStr] || false;
-      checkbox.onclick = () => toggleCheckbox(hIndex, dateStr);
-      td.appendChild(checkbox);
-      tr.appendChild(td);
+    const tdName = document.createElement('td'); tdName.textContent=habit.name; tdName.className="habit-name"; tr.appendChild(tdName);
+
+    let dayCount = 1;
+    while(dayCount <= daysInMonth){
+      for(let d=0; d<7; d++){
+        const td = document.createElement('td');
+        if((dayCount === 1 && d<firstDay) || dayCount>daysInMonth){
+          td.textContent = "";
+        } else {
+          const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(dayCount).padStart(2,'0')}`;
+          const checkbox = document.createElement('input'); 
+          checkbox.type = "checkbox"; 
+          checkbox.checked = habit.records[dateStr]||false;
+          checkbox.onclick = ()=>toggleCheckbox(hIndex,dateStr);
+          td.appendChild(checkbox);
+
+          // Highlight "today" in 2026
+          if(dateStr === todayStr) td.classList.add("today");
+          // Highlight checked
+          if(habit.records[dateStr]) td.classList.add("checked");
+          dayCount++;
+        }
+        tr.appendChild(td);
+      }
     }
-    
     table.appendChild(tr);
   });
 }
