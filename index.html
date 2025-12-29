@@ -1,132 +1,177 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Habit Tracker</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f5f5f5;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Monthly Habit Tracker</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+    background: #f5f5f5;
+  }
+  h1, h2 {
+    text-align: center;
+  }
+  .controls {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  input[type=text] {
+    padding: 8px;
+    font-size: 16px;
+  }
+  button {
+    padding: 8px 12px;
+    font-size: 16px;
+    cursor: pointer;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    overflow-x: auto;
+    display: block;
+  }
+  th, td {
+    border: 1px solid #ddd;
+    text-align: center;
+    padding: 5px;
+    min-width: 30px;
+  }
+  th {
+    background-color: #f0f0f0;
+  }
+  td.habit-name {
+    text-align: left;
+    min-width: 120px;
+  }
+  @media (max-width: 600px) {
+    td.habit-name {
+      min-width: 80px;
     }
-    .container {
-      background-color: white;
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-      width: 90%;
-      max-width: 400px;
-      text-align: center;
+    table {
+      font-size: 12px;
     }
-    input, button {
-      padding: 10px;
-      margin: 5px 0;
-      width: 80%;
-      font-size: 16px;
-    }
-    ul {
-      list-style: none;
-      padding: 0;
-    }
-    li {
-      padding: 8px 0;
-      border-bottom: 1px solid #ddd;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    li.done {
-      text-decoration: line-through;
-      color: gray;
-    }
-    button.delete {
-      background-color: red;
-      color: white;
-      border: none;
-      padding: 5px 8px;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-  </style>
+  }
+</style>
 </head>
 <body>
-  <div class="container">
-    <h1>Habit Tracker</h1>
-    <input type="text" id="habitInput" placeholder="Enter a habit">
-    <button onclick="addHabit()">Add Habit</button>
-    <ul id="habitList"></ul>
-  </div>
 
-  <script>
-let habits = JSON.parse(localStorage.getItem('habits')) || [];
+<h1>Monthly Habit Tracker</h1>
+
+<div class="controls">
+  <input type="text" id="newHabit" placeholder="New Habit">
+  <button onclick="addHabit()">Add Habit</button>
+  <select id="monthSelect" onchange="renderCalendar()"></select>
+  <select id="yearSelect" onchange="renderCalendar()"></select>
+</div>
+
+<div style="overflow-x:auto;">
+  <table id="habitTable"></table>
+</div>
+
+<script>
+const monthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+let habits = JSON.parse(localStorage.getItem('calendarHabits')) || [];
+let currentMonth = new Date().getMonth();
+let currentYear = new Date().getFullYear();
 
 function saveHabits() {
-  localStorage.setItem('habits', JSON.stringify(habits));
-}
-
-function renderHabits() {
-  const list = document.getElementById('habitList');
-  list.innerHTML = '';
-  habits.forEach((habit, index) => {
-    const li = document.createElement('li');
-    li.className = habit.done ? 'done' : '';
-    li.innerHTML = `
-      <span onclick="toggleDone(${index})">${habit.name} - Streak: ${habit.streak}</span>
-      <button class="delete" onclick="deleteHabit(${index})">Delete</button>
-    `;
-    list.appendChild(li);
-  });
+  localStorage.setItem('calendarHabits', JSON.stringify(habits));
 }
 
 function addHabit() {
-  const input = document.getElementById('habitInput');
+  const input = document.getElementById('newHabit');
   const name = input.value.trim();
-  if(name === '') return;
-
-  habits.push({ name: name, done: false, streak: 0, lastDone: null });
+  if(!name) return;
+  habits.push({ name: name, records: {} }); // records = {"2025-12-30": true}
   input.value = '';
   saveHabits();
-  renderHabits();
+  renderCalendar();
 }
 
-function toggleDone(index) {
-  const habit = habits[index];
-  const today = new Date().toDateString();
-
-  // If not done today
-  if(habit.lastDone !== today) {
-    // Check for streak continuity
-    const yesterday = new Date();
-    yesterday.setDate(new Date().getDate() - 1);
-    const yesterdayStr = yesterday.toDateString();
-
-    if(habit.lastDone === yesterdayStr) {
-      habit.streak += 1; // streak continues
-    } else {
-      habit.streak = 1; // streak reset
-    }
-
-    habit.done = true;
-    habit.lastDone = today;
-    saveHabits();
-    renderHabits();
-  } else {
-    alert("You already marked this habit done today!");
-  }
-}
-
-function deleteHabit(index) {
-  habits.splice(index, 1);
+function toggleCheckbox(habitIndex, dateStr) {
+  const record = habits[habitIndex].records;
+  record[dateStr] = !record[dateStr];
   saveHabits();
-  renderHabits();
+  renderCalendar();
 }
 
-// Initial render
-renderHabits();
-  </script>
+function renderCalendar() {
+  const monthSelect = document.getElementById('monthSelect');
+  const yearSelect = document.getElementById('yearSelect');
+  
+  // Populate months
+  if(monthSelect.options.length === 0) {
+    monthNames.forEach((m, i) => {
+      const option = document.createElement('option');
+      option.value = i;
+      option.text = m;
+      monthSelect.add(option);
+    });
+  }
+  monthSelect.value = currentMonth;
+  
+  // Populate years
+  if(yearSelect.options.length === 0) {
+    for(let y = currentYear - 5; y <= currentYear + 5; y++){
+      const option = document.createElement('option');
+      option.value = y;
+      option.text = y;
+      yearSelect.add(option);
+    }
+  }
+  yearSelect.value = currentYear;
+  
+  const month = parseInt(monthSelect.value);
+  const year = parseInt(yearSelect.value);
+  const daysInMonth = new Date(year, month+1, 0).getDate();
+  
+  const table = document.getElementById('habitTable');
+  table.innerHTML = '';
+  
+  // Header row
+  const header = document.createElement('tr');
+  const thHabit = document.createElement('th');
+  thHabit.textContent = "Habit / Day";
+  thHabit.className = "habit-name";
+  header.appendChild(thHabit);
+  for(let d=1; d<=daysInMonth; d++){
+    const th = document.createElement('th');
+    th.textContent = d;
+    header.appendChild(th);
+  }
+  table.appendChild(header);
+  
+  // Habit rows
+  habits.forEach((habit, hIndex) => {
+    const tr = document.createElement('tr');
+    const tdName = document.createElement('td');
+    tdName.textContent = habit.name;
+    tdName.className = "habit-name";
+    tr.appendChild(tdName);
+    
+    for(let d=1; d<=daysInMonth; d++){
+      const td = document.createElement('td');
+      const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      const checkbox = document.createElement('input');
+      checkbox.type = "checkbox";
+      checkbox.checked = habit.records[dateStr] || false;
+      checkbox.onclick = () => toggleCheckbox(hIndex, dateStr);
+      td.appendChild(checkbox);
+      tr.appendChild(td);
+    }
+    
+    table.appendChild(tr);
+  });
+}
+
+renderCalendar();
+</script>
+
+</body>
+</html>
