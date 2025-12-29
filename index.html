@@ -3,14 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Habit Tracker</title>
+    <title>2026 Habit Tracker</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Arial', sans-serif; }
         body { background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); padding: 15px; max-width: 1100px; margin: 0 auto; }
         
         .header { text-align: center; margin-bottom: 25px; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 8px 25px rgba(0,0,0,0.1); }
-        .month-selector { display: flex; gap: 10px; justify-content: center; margin-bottom: 15px; flex-wrap: wrap; }
-        .month-btn { padding: 10px 15px; border: 2px solid #4ecdc4; background: white; border-radius: 25px; cursor: pointer; font-weight: bold; transition: all 0.3s; }
+        .year-title { font-size: 1.8em; font-weight: bold; color: #ff6b6b; margin-bottom: 10px; }
+        .month-selector { display: flex; gap: 8px; justify-content: center; margin-bottom: 15px; flex-wrap: wrap; }
+        .month-btn { padding: 10px 12px; border: 2px solid #4ecdc4; background: white; border-radius: 25px; cursor: pointer; font-weight: bold; font-size: 14px; transition: all 0.3s; }
         .month-btn.active { background: #4ecdc4; color: white; }
         .month-title { font-size: 2.5em; font-weight: bold; background: linear-gradient(45deg, #ff6b6b, #4ecdc4); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         
@@ -25,8 +26,8 @@
         .grid-title { font-size: 1.8em; margin-bottom: 20px; color: #333; text-align: center; }
         
         table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th.weekday { background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); padding: 12px 8px; text-align: center; font-weight: bold; color: #444; font-size: 0.9em; border: 2px solid #e9ecef; }
-        th.daynum { background: #f8f9fa; padding: 12px 8px; text-align: center; font-weight: bold; color: #555; border: 2px solid #e9ecef; }
+        th.weekday { background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); padding: 10px 6px; text-align: center; font-weight: bold; color: #444; font-size: 0.85em; border: 2px solid #e9ecef; }
+        th.daynum { background: #f8f9fa; padding: 10px 6px; text-align: center; font-weight: bold; color: #555; border: 2px solid #e9ecef; font-size: 0.9em; }
         .habit-name { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px 12px; font-weight: bold; border-radius: 8px 8px 0 0; position: relative; }
         .habit-name button { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.2); color: white; border: none; width: 25px; height: 25px; border-radius: 50%; cursor: pointer; font-size: 12px; }
         
@@ -36,7 +37,8 @@
         .habit-cell.checked::after { content: '✓'; font-size: 20px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
         .habit-cell.missed { background: #ff6b6b !important; color: white; font-weight: bold; }
         .habit-cell.missed::after { content: '✗'; font-size: 20px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
-        .today-highlight { border: 3px solid #ff6b6b !important; box-shadow: 0 0 15px rgba(255,107,107,0.4) !important; }
+        .today-highlight { border: 3px solid #ff6b6b !important; box-shadow: 0 0 15px rgba(255,107,107,0.4) !important; animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { box-shadow: 0 0 15px rgba(255,107,107,0.4); } 50% { box-shadow: 0 0 25px rgba(255,107,107,0.6); } }
         
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-top: 20px; }
         .stat-card { background: white; padding: 20px; border-radius: 15px; text-align: center; box-shadow: 0 8px 25px rgba(0,0,0,0.1); }
@@ -45,20 +47,27 @@
         .mood-section { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px; }
         canvas { background: white; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         
-        @media (max-width: 768px) { .mood-section { grid-template-columns: 1fr; } table { font-size: 0.8em; } td { height: 40px; padding: 4px; } }
+        @media (max-width: 768px) { 
+            .mood-section { grid-template-columns: 1fr; } 
+            table { font-size: 0.8em; } 
+            td { height: 40px; padding: 4px; } 
+            .month-selector { gap: 5px; }
+            .month-btn { padding: 8px 10px; font-size: 12px; }
+        }
     </style>
 </head>
 <body>
     <div class="header">
+        <div class="year-title">📅 2026 Habit Tracker</div>
         <div class="month-selector" id="monthSelector"></div>
-        <div class="month-title" id="monthTitle">DECEMBER</div>
+        <div class="month-title" id="monthTitle">JANUARY</div>
     </div>
     
     <div class="controls">
-        <input type="text" id="newHabit" placeholder="Add new habit...">
+        <input type="text" id="newHabit" placeholder="Add new habit... (Enter to add)">
         <button onclick="addHabit()">➕ Add Habit</button>
         <button onclick="clearMissed()">🗑️ Clear Missed</button>
-        <button onclick="exportData()">📤 Export</button>
+        <button onclick="exportData()">📤 Backup</button>
     </div>
     
     <div class="tracker-grid">
@@ -71,11 +80,11 @@
     
     <div class="stats-grid">
         <div class="stat-card">
-            <div>Completion Rate</div>
+            <div>Month Completion</div>
             <div class="stat-number" id="totalCompletion">--%</div>
         </div>
         <div class="stat-card">
-            <div>Streak</div>
+            <div>Current Streak</div>
             <div class="stat-number" id="currentStreak">-- days</div>
         </div>
         <div class="stat-card">
@@ -86,38 +95,44 @@
     
     <div class="mood-section">
         <div class="tracker-grid">
-            <div class="grid-title">😊 Today's Mood</div>
+            <div class="grid-title">😊 Today's Mood & Sleep</div>
             <div>Mood: <span id="todayMood">--</span>/10 | Sleep: <span id="todaySleep">--</span>h</div>
             <input type="range" id="moodSlider" min="1" max="10" value="5" style="width:100%;">
             <input type="number" id="sleepInput" placeholder="Sleep hours" style="width:80px; padding:8px; margin:10px;">
-            <button onclick="saveToday()">💾 Save</button>
+            <button onclick="saveToday()">💾 Save Today</button>
         </div>
         <div class="tracker-grid">
-            <div class="grid-title">📈 Habit Graph</div>
+            <div class="grid-title">📈 Progress Graph</div>
             <canvas id="habitChart" width="400" height="200"></canvas>
         </div>
     </div>
 
     <script>
-        let currentMonth = 'DECEMBER';
-        let habits = JSON.parse(localStorage.getItem('habits') || '["No sweets","Exercise","Read","Water","Sleep early"]');
-        let data = JSON.parse(localStorage.getItem('habitData') || '{}');
-        let moodData = JSON.parse(localStorage.getItem('moodData') || '{}');
+        const YEAR = 2026;
+        let currentMonth = 0; // January = 0
+        let habits = JSON.parse(localStorage.getItem('habits2026') || '["No sweets","Exercise 30min","Read 30min","Water 3L","Sleep by 11","Skincare","Content creation"]');
+        let data = JSON.parse(localStorage.getItem('habitData2026') || '{}');
+        let moodData = JSON.parse(localStorage.getItem('moodData2026') || '{}');
         
         const MONTH_NAMES = ['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE','JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'];
+        const DAYS_IN_MONTH = [31,29,31,30,31,30,31,31,30,31,30,31]; // 2026 leap year Feb 29
         const WEEKDAYS = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
         
         function saveAll() {
-            localStorage.setItem('habits', JSON.stringify(habits));
-            localStorage.setItem('habitData', JSON.stringify(data));
-            localStorage.setItem('moodData', JSON.stringify(moodData));
+            localStorage.setItem('habits2026', JSON.stringify(habits));
+            localStorage.setItem('habitData2026', JSON.stringify(data));
+            localStorage.setItem('moodData2026', JSON.stringify(moodData));
         }
         
-        function setMonth(month) {
-            currentMonth = month;
+        function getDaysInMonth() {
+            return DAYS_IN_MONTH[currentMonth];
+        }
+        
+        function setMonth(monthIndex) {
+            currentMonth = monthIndex;
             document.querySelectorAll('.month-btn').forEach(btn => btn.classList.remove('active'));
-            document.querySelector(`[data-month="${month}"]`).classList.add('active');
-            document.getElementById('monthTitle').textContent = month;
+            document.querySelector(`[data-month="${monthIndex}"]`).classList.add('active');
+            document.getElementById('monthTitle').textContent = MONTH_NAMES[monthIndex];
             renderTable();
             updateStats();
             drawChart();
@@ -128,16 +143,20 @@
             const tbody = document.getElementById('habitBody');
             const now = new Date();
             const today = now.getDate();
-            const todayWeekday = WEEKDAYS[now.getDay()];
+            const todayMonth = now.getMonth();
+            const isTodayInMonth = now.getFullYear() === YEAR && todayMonth === currentMonth;
+            const todayDay = isTodayInMonth ? today : -1;
             
-            // Weekday headers
+            const daysInMonth = getDaysInMonth();
+            
+            // Weekday headers (calculated for 2026)
             let headHTML = '<tr><th></th>';
-            for(let i = 0; i < 31; i++) {
-                const date = new Date(now.getFullYear(), MONTH_NAMES.indexOf(currentMonth), i+1);
+            for(let day=1; day<=daysInMonth; day++) {
+                const date = new Date(YEAR, currentMonth, day);
                 headHTML += `<th class="weekday">${WEEKDAYS[date.getDay()]}</th>`;
             }
             headHTML += '</tr><tr><th></th>';
-            for(let day=1; day<=31; day++) {
+            for(let day=1; day<=daysInMonth; day++) {
                 headHTML += `<th class="daynum">${day}</th>`;
             }
             thead.innerHTML = headHTML;
@@ -146,20 +165,19 @@
             tbody.innerHTML = '';
             habits.forEach((habit, habitIndex) => {
                 const row = document.createElement('tr');
-                const monthKey = `${currentMonth}`;
-                const habitKey = `${monthKey}-${habitIndex}`;
+                const monthKey = `${MONTH_NAMES[currentMonth]}-${YEAR}`;
                 row.innerHTML = `
                     <td class="habit-name">${habit}
-                        <button onclick="deleteHabit(${habitIndex})" title="Delete habit">×</button>
+                        <button class="danger" onclick="deleteHabit(${habitIndex})" title="Delete">×</button>
                     </td>
-                    ${Array(31).fill(0).map((_, day) => {
-                        const key = `${monthKey}-${day}-${habitIndex}`;
+                    ${Array(daysInMonth).fill(0).map((_, day) => {
+                        const key = `${monthKey}-${day+1}-${habitIndex}`;
                         const status = data[key];
                         let cellClass = 'habit-cell empty';
                         if(status === 'done') cellClass = 'habit-cell checked';
                         if(status === 'missed') cellClass = 'habit-cell missed';
-                        if(day+1 === today) cellClass += ' today-highlight';
-                        return `<td class="${cellClass}" onclick="toggleHabit(${habitIndex}, ${day+1})" data-day="${day+1}"></td>`;
+                        if(day+1 === todayDay) cellClass += ' today-highlight';
+                        return `<td class="${cellClass}" onclick="toggleHabit(${habitIndex}, ${day+1})"></td>`;
                     }).join('')}
                 `;
                 tbody.appendChild(row);
@@ -167,11 +185,12 @@
         }
         
         function toggleHabit(habitIndex, day) {
-            const key = `${currentMonth}-${day}-${habitIndex}`;
+            const monthKey = `${MONTH_NAMES[currentMonth]}-${YEAR}`;
+            const key = `${monthKey}-${day}-${habitIndex}`;
             if(!data[key]) data[key] = 'empty';
             if(data[key] === 'empty') data[key] = 'done';
             else if(data[key] === 'done') data[key] = 'missed';
-            else data[key] = 'done';
+            else data[key] = 'empty';
             saveAll();
             renderTable();
             updateStats();
@@ -189,7 +208,6 @@
         
         function deleteHabit(index) {
             habits.splice(index, 1);
-            // Clean up data
             Object.keys(data).forEach(key => {
                 if(key.includes(`-${index}`)) delete data[key];
             });
@@ -199,9 +217,10 @@
         
         function updateStats() {
             let totalCells = 0, completed = 0;
+            const daysInMonth = getDaysInMonth();
             habits.forEach((habit, habitIndex) => {
-                for(let day=1; day<=31; day++) {
-                    const key = `${currentMonth}-${day}-${habitIndex}`;
+                for(let day=1; day<=daysInMonth; day++) {
+                    const key = `${MONTH_NAMES[currentMonth]}-${YEAR}-${day}-${habitIndex}`;
                     totalCells++;
                     if(data[key] === 'done') completed++;
                 }
@@ -213,26 +232,32 @@
         
         function saveToday() {
             const now = new Date();
-            const day = now.getDate();
-            const key = `${currentMonth}-${day}`;
-            moodData[key] = {
-                mood: document.getElementById('moodSlider').value,
-                sleep: document.getElementById('sleepInput').value
-            };
-            saveAll();
-            updateTodayDisplay();
+            if(now.getFullYear() === YEAR) {
+                const day = now.getDate();
+                const monthKey = `${MONTH_NAMES[now.getMonth()]}-${YEAR}`;
+                const key = `${monthKey}-${day}`;
+                moodData[key] = {
+                    mood: document.getElementById('moodSlider').value,
+                    sleep: document.getElementById('sleepInput').value
+                };
+                saveAll();
+                updateTodayDisplay();
+            }
         }
         
         function updateTodayDisplay() {
             const now = new Date();
-            const day = now.getDate();
-            const key = `${currentMonth}-${day}`;
-            const today = moodData[key];
-            if(today) {
-                document.getElementById('todayMood').textContent = today.mood;
-                document.getElementById('todaySleep').textContent = today.sleep;
-                document.getElementById('moodSlider').value = today.mood;
-                document.getElementById('sleepInput').value = today.sleep;
+            if(now.getFullYear() === YEAR && now.getMonth() === currentMonth) {
+                const day = now.getDate();
+                const monthKey = `${MONTH_NAMES[currentMonth]}-${YEAR}`;
+                const key = `${monthKey}-${day}`;
+                const today = moodData[key];
+                if(today) {
+                    document.getElementById('todayMood').textContent = today.mood;
+                    document.getElementById('todaySleep').textContent = today.sleep;
+                    document.getElementById('moodSlider').value = today.mood;
+                    document.getElementById('sleepInput').value = today.sleep;
+                }
             }
         }
         
@@ -240,17 +265,18 @@
             const canvas = document.getElementById('habitChart');
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const daysInMonth = getDaysInMonth();
             
             habits.forEach((habit, habitIndex) => {
                 ctx.strokeStyle = `hsl(${habitIndex * 30}, 70%, 50%)`;
                 ctx.lineWidth = 3;
                 ctx.beginPath();
                 let first = true;
-                for(let day=1; day<=31; day++) {
-                    const key = `${currentMonth}-${day}-${habitIndex}`;
+                for(let day=1; day<=daysInMonth; day++) {
+                    const key = `${MONTH_NAMES[currentMonth]}-${YEAR}-${day}-${habitIndex}`;
                     const value = data[key] === 'done' ? 1 : 0;
-                    const x = (day-1) * 12 + 10;
-                    const y = canvas.height - (value * 100) - 20;
+                    const x = Math.min(((day-1) / daysInMonth) * canvas.width, canvas.width - 10);
+                    const y = canvas.height - (value * 120) - 20;
                     if(first) { ctx.moveTo(x, y); first = false; }
                     else ctx.lineTo(x, y);
                 }
@@ -260,28 +286,37 @@
         
         function initMonthSelector() {
             const selector = document.getElementById('monthSelector');
-            MONTH_NAMES.forEach(month => {
+            MONTH_NAMES.forEach((month, index) => {
                 const btn = document.createElement('button');
                 btn.className = 'month-btn';
                 btn.textContent = month.slice(0,3);
-                btn.dataset.month = month;
-                btn.onclick = () => setMonth(month);
-                if(month === currentMonth) btn.classList.add('active');
+                btn.dataset.month = index;
+                btn.onclick = () => setMonth(index);
+                if(index === currentMonth) btn.classList.add('active');
                 selector.appendChild(btn);
             });
         }
         
-        // Initialize everything
+        function exportData() {
+            const exportData = { habits, data, moodData, year: YEAR };
+            const blob = new Blob([JSON.stringify(exportData)], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `habit-tracker-2026-backup.json`;
+            a.click();
+        }
+        
+        // Initialize 2026 tracker
         initMonthSelector();
         renderTable();
         updateTodayDisplay();
         updateStats();
         drawChart();
         
-        // Enter to add habit
         document.getElementById('newHabit').addEventListener('keypress', (e) => {
             if(e.key === 'Enter') addHabit();
         });
     </script>
 </body>
-  </html>
+</html>
