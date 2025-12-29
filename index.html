@@ -64,51 +64,69 @@
   </div>
 
   <script>
-    let habits = JSON.parse(localStorage.getItem('habits')) || [];
+let habits = JSON.parse(localStorage.getItem('habits')) || [];
 
-    function saveHabits() {
-      localStorage.setItem('habits', JSON.stringify(habits));
+function saveHabits() {
+  localStorage.setItem('habits', JSON.stringify(habits));
+}
+
+function renderHabits() {
+  const list = document.getElementById('habitList');
+  list.innerHTML = '';
+  habits.forEach((habit, index) => {
+    const li = document.createElement('li');
+    li.className = habit.done ? 'done' : '';
+    li.innerHTML = `
+      <span onclick="toggleDone(${index})">${habit.name} - Streak: ${habit.streak}</span>
+      <button class="delete" onclick="deleteHabit(${index})">Delete</button>
+    `;
+    list.appendChild(li);
+  });
+}
+
+function addHabit() {
+  const input = document.getElementById('habitInput');
+  const name = input.value.trim();
+  if(name === '') return;
+
+  habits.push({ name: name, done: false, streak: 0, lastDone: null });
+  input.value = '';
+  saveHabits();
+  renderHabits();
+}
+
+function toggleDone(index) {
+  const habit = habits[index];
+  const today = new Date().toDateString();
+
+  // If not done today
+  if(habit.lastDone !== today) {
+    // Check for streak continuity
+    const yesterday = new Date();
+    yesterday.setDate(new Date().getDate() - 1);
+    const yesterdayStr = yesterday.toDateString();
+
+    if(habit.lastDone === yesterdayStr) {
+      habit.streak += 1; // streak continues
+    } else {
+      habit.streak = 1; // streak reset
     }
 
-    function renderHabits() {
-      const list = document.getElementById('habitList');
-      list.innerHTML = '';
-      habits.forEach((habit, index) => {
-        const li = document.createElement('li');
-        li.className = habit.done ? 'done' : '';
-        li.innerHTML = `
-          <span onclick="toggleDone(${index})">${habit.name}</span>
-          <button class="delete" onclick="deleteHabit(${index})">Delete</button>
-        `;
-        list.appendChild(li);
-      });
-    }
-
-    function addHabit() {
-      const input = document.getElementById('habitInput');
-      const name = input.value.trim();
-      if(name === '') return;
-
-      habits.push({ name: name, done: false });
-      input.value = '';
-      saveHabits();
-      renderHabits();
-    }
-
-    function toggleDone(index) {
-      habits[index].done = !habits[index].done;
-      saveHabits();
-      renderHabits();
-    }
-
-    function deleteHabit(index) {
-      habits.splice(index, 1);
-      saveHabits();
-      renderHabits();
-    }
-
-    // Initial render
+    habit.done = true;
+    habit.lastDone = today;
+    saveHabits();
     renderHabits();
+  } else {
+    alert("You already marked this habit done today!");
+  }
+}
+
+function deleteHabit(index) {
+  habits.splice(index, 1);
+  saveHabits();
+  renderHabits();
+}
+
+// Initial render
+renderHabits();
   </script>
-</body>
-</html>
